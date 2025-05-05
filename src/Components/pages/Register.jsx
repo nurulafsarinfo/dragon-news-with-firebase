@@ -1,9 +1,12 @@
-import React, { use } from 'react';
-import { Link } from 'react-router';
+/* eslint-disable no-unused-vars */
+import React, { use, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { AuthContext } from '../../provider/AuthProvider';
 
 const Register = () => {
-    const { createUser, setUser } = use(AuthContext);
+    const { createUser, setUser, updateUser } = use(AuthContext);
+    const [nameError, setNameError] = useState();
+    const navigate = useNavigate();
 
     const handleregister = (e) =>{
         e.preventDefault();
@@ -11,14 +14,28 @@ const Register = () => {
         const email = e.target.email.value;
         const photo = e.target.photoUrl.value;
         const password = e.target.password.value;
-       
-        console.log(name, email, photo, password);
+
+
+        if(name.length < 6){
+            setNameError("Name should be 6 charecter");
+            return;
+        }else{
+            setNameError('')
+        }
 
         createUser(email, password)
             .then(result => {
                 const user = result.user;
-                // console.log(user);
-                setUser(user)
+                updateUser({ displayName: name, photoURL: photo}).then(()=>{
+                    setUser({...user, displayName: name, photoURL: photo})
+                    // console.log("user prfile is: ",result);
+                    navigate("/")
+                })
+                .catch((error) => {
+                    console.log(error);
+                    setUser(user);
+                })
+                alert("Register completed !")
             
             })
             .catch((error) => {
@@ -35,10 +52,14 @@ const Register = () => {
                         {/* Name */}
                         <label className="label">Name</label>
                         <input type="text" name='name' className="input" placeholder="Name" required/>
+                        {
+                            nameError && <p className='text-red-500'>{nameError}</p>
+                        }
 
                         {/* Photo URL */}
                         <label className="label">Photo URL</label>
                         <input type="text" name='photoUrl' className="input" placeholder="Photo url" required/>
+
 
                         {/* email */}
                         <label className="label">Email</label>
@@ -49,7 +70,7 @@ const Register = () => {
                         <input type="password" 
                         name='password' className="input" placeholder="Password" required/>
         
-                        <button type='submit' className="btn btn-neutral mt-4">Register Now</button>
+                        <button  type='submit' className="btn btn-neutral mt-4">Register Now</button>
                         <p className='text-center font-semibold pt-5'>Already Have An Account ? <Link className='text-secondary hover:underline ' to="/auth/login">Login</Link></p>
                     </fieldset>
                 </form>
